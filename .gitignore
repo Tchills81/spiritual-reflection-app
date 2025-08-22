@@ -1,0 +1,15 @@
+# Python
+__pycache__/
+*.py[cod]
+
+# Virtual environment
+venv/
+
+# Logs and data
+*.log
+*.db
+data/
+reflections.json
+
+# macOS
+.DS_Store
