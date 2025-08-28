@@ -1,15 +1,15 @@
 import streamlit as st
 
-from app.ui.tabs.reflection_journal import render_tab as render_reflection_journal
-from app.ui.tabs.generated_reflection import render_tab as render_tab2
-from app.ui.tabs.chat_companion import render_tab as render_chat_companion
-from app.ui.tabs.daily_reflection import render_tab as render_daily_reflection
-from app.ui.tabs.journey_summary import render_tab as render_journey_summary
+from ui.tabs.reflection_journal import render_tab as render_reflection_journal
+from ui.tabs.generated_reflection import render_tab as render_tab2
+from ui.tabs.chat_companion import render_tab as render_chat_companion
+from ui.tabs.daily_reflection import render_tab as render_daily_reflection
+from ui.tabs.journey_summary import render_tab as render_journey_summary
 
-from app.utils.dummy_data import generate_dummy_journal
-from app.utils.theme_config import THEMES
-from app.ui.tabs.styles import styled_tab_button
-from app.ui.incons import TONE_CONFIGS, THEME_TO_TONE
+from utils.dummy_data import generate_dummy_journal
+from utils.theme_config import THEMES
+from ui.tabs.styles import styled_tab_button
+from ui.incons import TONE_CONFIGS, THEME_TO_TONE
 
 # 🌿 Page setup
 st.set_page_config(page_title="Spiritual Reflection App", layout="centered")

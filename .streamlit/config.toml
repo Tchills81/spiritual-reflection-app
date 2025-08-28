@@ -1,0 +1,11 @@
+[theme]
+# Primary interactive color
+primaryColor="#F63366"
+# Page background
+backgroundColor="#FFFFFF"
+# Sidebar and secondary widget background
+secondaryBackgroundColor="#F0F2F6"
+# Font color
+textColor="#262730"
+# Font family
+font="sans serif"
