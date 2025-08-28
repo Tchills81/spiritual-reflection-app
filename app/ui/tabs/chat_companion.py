@@ -3,6 +3,7 @@ from ui.response_engine import ResponseComposer, save_reflection
 from utils.reflection_flows import get_prompt_sequence, run_guided_reflection_flow
 from ui.incons import tone_icon_map, theme_icon_map, mood_icon_map
 from utils.themes import get_themes_by_mode
+from ui.tabs.styles import styled_audio_button, styled_text_area, styled_text_input
 
 composer = ResponseComposer()
 
@@ -72,7 +73,7 @@ def render_tab():
 
         # Input form
         with st.form(key="chat_form"):
-            user_input = st.text_input("Type your reflection or question...", key="chat_input")
+            user_input = styled_text_input("Type your reflection or question...", key="chat_input")
             submitted = st.form_submit_button("Send")
 
         if submitted and user_input.strip():

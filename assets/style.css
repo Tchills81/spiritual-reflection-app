@@ -1,0 +1,12 @@
+css
+.tab1_play button {
+    background-color: #000000;
+    color: white;
+    border-radius: 8px;
+    padding: 10px 24px;
+    font-size: 16px;
+    border: none;
+}
+.tab1_play button:hover {
+    background-color: #FF0000;
+}

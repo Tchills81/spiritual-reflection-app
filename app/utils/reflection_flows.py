@@ -2,6 +2,8 @@ import streamlit as st
 import time
 from ui.response_engine import save_reflection
 from datetime import datetime
+from ui.tabs.styles import styled_audio_button, styled_reflection_form
+
 
 guided_sequences = {
         "Forgiveness": [
@@ -153,12 +155,14 @@ def run_guided_reflection_flow(
         st.markdown(f"**Assistant:** {prompts[current_step]}")
         st.caption(f"Step {current_step + 1} of {total_steps}")
 
-        with st.form(key=f"{form_key_prefix}_form"):
-            user_reflection = st.text_area(
-                "Your reflection:",
-                key=f"{form_key_prefix}_textarea"
-            )
-            submitted = st.form_submit_button("Next")
+        #with st.form(key=f"{form_key_prefix}_form"):
+         #   user_reflection = st.text_area(
+          #      "Your reflection:",
+           #     key=f"{form_key_prefix}_textarea"
+            #)
+            #submitted = st.form_submit_button("Next")
+        
+        submitted, user_reflection = styled_reflection_form(form_key_prefix="daily")
 
         if submitted and user_reflection.strip():
             st.session_state[reflections_key].append(user_reflection)

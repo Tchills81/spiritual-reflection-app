@@ -10,8 +10,10 @@ from utils.themes import get_themes_with_icons
 from utils.reflection_summary_engine import ReflectionSummaryEngine
 from utils.reflection_flows import play_ambient_music
 from utils.milestone_utils import detect_reflection_milestones
-from ui.incons import tone_icon_map, theme_icon_map, mood_icon_map, affirmation_map
+from ui.incons import tone_icon_map, theme_icon_map, CAPTION_ICONS
 from ui.response_engine import generate_affirmation
+from streamlit_extras.stylable_container import stylable_container
+from ui.tabs.styles import styled_audio_button, styled_text_area, styled_icon_button, styled_caption
 
 # 🔹 Utility functions
 def clean_tone(tone_str):
@@ -80,6 +82,8 @@ def plot_journal_entries(df):
         icon = theme_icon_map.get(raw_theme, "❔")
         st.caption(f"🧘 Your reflections lean toward {icon} **{raw_theme}** this week.")
     else:
+        
+
         st.caption("🧘 No reflections yet—your journey begins here.")
 
 
@@ -106,7 +110,6 @@ def render_export_summary(tab_key):
             else:
                 st.info("No milestones yet—your journey is just beginning.")
 
-# 🔹 Main tab renderer
 def render_tab():
     st.markdown("_Capture your thoughts, moods, and affirmations in a space that listens._")
     st.caption("This space helps you explore your emotional journey through tone, theme, and guided insights.")
@@ -129,38 +132,71 @@ def render_tab():
         df = pd.DataFrame(entries).sort_values("timestamp")
         plot_journal_entries(df)
 
-    mood = st.selectbox("How are you feeling right now?", ["Calm", "Anxious", "Grateful", "Reflective", "Heavy"])
-    tone = st.selectbox("Choose a tone for your reflection:", ["Gentle", "Empowering", "Philosophical", "Neutral"])
-    theme_label = st.selectbox("What theme best fits your moment?", get_themes_with_icons("guided"))
-    theme = theme_label.split(" ", 1)[-1]
-    reflection_text = st.text_area("Write your reflection here...", height=200)
+    from ui.tabs.styles import styled_selectbox
 
-    if st.button("✨ Generate Affirmation", key="tab1_generate"):
+    mood = styled_selectbox("How are you feeling right now?", ["Calm", "Anxious", "Grateful", "Reflective", "Heavy"], key="mood_select")
+    tone = styled_selectbox("Hello a tone for your reflection:", ["Gentle", "Empowering", "Philosophical", "Neutral"], key="tone_select")
+    theme_label = styled_selectbox("What theme best fits your moment?", get_themes_with_icons("guided"), key="theme_select")
+    theme = theme_label.split(" ", 1)[-1]
+
+    reflection_text = styled_text_area("Write your reflection here...", key="journal_reflection", height=200)
+
+    st.markdown("___")  # subtle horizontal line
+
+
+    # ✨ Generate Affirmation
+    if styled_icon_button("generate_affirmation", key_suffix="tab1_generate"):
         affirmation = generate_affirmation(reflection_text, tone, theme)
         st.session_state["affirmation"] = affirmation
         st.markdown(f"### {tone_icon_map[tone]} Your Affirmation\n_{affirmation}_")
         play_ambient_music(tone)
+        #st.caption("Now that your affirmation is ready, you can listen or save it below.")
+        icon = CAPTION_ICONS.get("audio_hint", "🔘")
+        styled_caption(f"{icon} Now that your affirmation is ready, you can listen or save it below.", key_suffix="audio_hint")
+    else:
+        # Always display affirmation if it exists
+        if "affirmation" in st.session_state:
+           st.markdown(f"### {tone_icon_map[tone]} Your Affirmation\n_{st.session_state['affirmation']}_")
 
+
+    st.markdown("___")  # subtle horizontal line
+   
+
+
+    # 🔊 Play + 💾 Save (side by side)
     if "affirmation" in st.session_state:
-        if st.button("### 🔊 Play Affirmation", key="tab1_play"):
-              audio_buffer = BytesIO()
-              gTTS(st.session_state["affirmation"]).write_to_fp(audio_buffer)
-              audio_buffer.seek(0)
-              st.audio(audio_buffer, format="audio/wav", autoplay=True)
-    if st.button("### 💾 Save Reflection", key="tab1_save"):
-       if reflection_text.strip():
-          journal = st.session_state.get("journal_entries", [])
-          updated_journal = save_reflection(
-            tone=tone,
-            theme=theme,
-            text=reflection_text,
-            journal_entries=journal,
-            mood=mood,
-            source="Inner Compass",
-            reflection_type="Guided Reflection"
-        )
-          st.session_state["journal_entries"] = updated_journal
-          st.toast("📝 Reflection saved to journal.")
-       else:
-          st.warning("Reflection cannot be empty.")
+        # Reserve space for audio playback to prevent layout shift
+        audio_slot = st.empty()
+
+        col1, col2 = st.columns([1, 1])
+
+    
+
+        with col1:
+             if styled_audio_button("play_affirmation", st.session_state["affirmation"], "tab1_play"):
+               
+               styled_caption("🔊 Playing your affirmation...", key_suffix="audio_caption")
+
+
+        with col2:
+            if styled_icon_button("save", key_suffix="tab1_save"):
+                if reflection_text.strip():
+                    journal = st.session_state.get("journal_entries", [])
+                    updated_journal = save_reflection(
+                        tone=tone,
+                        theme=theme,
+                        text=reflection_text,
+                        journal_entries=journal,
+                        mood=mood,
+                        source="Inner Compass",
+                        reflection_type="Guided Reflection"
+                    )
+                    st.session_state["journal_entries"] = updated_journal
+                    st.toast("📝 Reflection saved to journal.")
+                else:
+                    st.warning("Reflection cannot be empty.")
+
+
+      
+
 

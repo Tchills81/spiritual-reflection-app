@@ -78,15 +78,22 @@ def render_tab():
             "Theme Cluster": "🌿",
             "Export Ready": "📦"
         }
+        #active_theme = THEMES[st.session_state["active_theme"]]
+        
+
+        active_theme = st.session_state.get("theme_config", {})
+        badge_bg = active_theme.get("badge_bg", "#e6f7ff")
+        accent = active_theme.get("accent_color", "#2c6df2")
 
         cols = st.columns(len(milestones))
         for i, milestone in enumerate(milestones):
             icon = milestone_icons.get(milestone, "🏁")
             with cols[i]:
+                #st.badge(f"{icon} {milestone}", color="primary")
                 st.markdown(f"""
-                    <div style='text-align:center; padding:8px; background-color:#e6f7ff; border-radius:8px'>
-                        <span style='font-size:20px'>{icon}</span><br>
-                        <strong>{milestone}</strong>
+                    <div style='text-align:center; padding:8px; background-color:{badge_bg}; border-radius:8px'>
+                    <span style='font-size:20px; color:{accent}'>🏁</span><br>
+                    <strong>{milestone}</strong>
                     </div>
                 """, unsafe_allow_html=True)
     else:

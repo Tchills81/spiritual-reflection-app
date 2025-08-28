@@ -90,6 +90,40 @@ milestone_icons = {
     "Export Ready": "📦"
 }
 
+BUTTON_LABELS = {
+    "save": "💾 Save Reflection",
+    "generate_affirmation": "✨ Generate Affirmation",
+    "play_affirmation": "🔊 Play Affirmation",
+    "load_dummy": "🧪 Load Dummy Journal",
+    "generate_milestone": "🎯 Generate Milestone Test Data",
+    "export_summary": "📤 Export Journey Summary",
+    "submit_form": "➡️ Submit Reflection",
+    "next": "➡️ Next",
+    "start_journey": "🚀 Begin Guided Journey",
+    "refresh_theme": "🔄 Refresh Theme",
+    "chat": "💬 Start Conversation",
+    "view_summary": "📘 View Journey Summary"
+}
+
+CAPTION_ICONS = {
+    "audio_hint": "🔊",
+    "save_confirmation": "💾",
+    "reflection_prompt": "📝",
+    "theme_guidance": "🌱",
+    "tone_tip": "🎭",
+    "navigation_hint": "🧭",
+    "error": "⚠️",
+    "success": "✅",
+    "info": "ℹ️"
+}
+
+
+BUTTON_VARIANTS = {
+    "gentle": {"save": "💾 Gently Save"},
+    "empowering": {"save": "💾 Lock It In"},
+    "philosophical": {"save": "💾 Archive Reflection"}
+}
+
 
 
 affirmation_map = {
