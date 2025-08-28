@@ -138,6 +138,7 @@ def render_tab():
     tone = styled_selectbox("Hello a tone for your reflection:", ["Gentle", "Empowering", "Philosophical", "Neutral"], key="tone_select")
     theme_label = styled_selectbox("What theme best fits your moment?", get_themes_with_icons("guided"), key="theme_select")
     theme = theme_label.split(" ", 1)[-1]
+    
 
     reflection_text = styled_text_area("Write your reflection here...", key="journal_reflection", height=200)
 

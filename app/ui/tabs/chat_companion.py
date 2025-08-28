@@ -3,9 +3,11 @@ from ui.response_engine import ResponseComposer, save_reflection
 from utils.reflection_flows import get_prompt_sequence, run_guided_reflection_flow
 from ui.incons import tone_icon_map, theme_icon_map, mood_icon_map
 from utils.themes import get_themes_by_mode
-from ui.tabs.styles import styled_audio_button, styled_text_area, styled_text_input
-
+from ui.tabs.styles import styled_audio_button, styled_text_area, styled_text_input, styled_timeline_block
+import pandas as pd
 composer = ResponseComposer()
+
+
 
 def render_tab():
     st.markdown("## 🗣️ Chat Companion")
@@ -27,9 +29,7 @@ def render_tab():
     if mode == "Guided":
         st.markdown("### 🌿 Guided Reflection")
         mode_key = "evening"
-        
         available_themes = get_themes_by_mode(mode_key)
-
 
         theme_key = f"{mode_key}_theme"
         step_key = f"{mode_key}_step"
@@ -106,21 +106,32 @@ def render_tab():
             st.markdown("### 📖 Dialogue Journal")
             st.caption(f"🗂 {len(st.session_state['journal_entries'])} reflections saved")
 
-            for entry in reversed(st.session_state["journal_entries"]):
+            for i, entry in enumerate(reversed(st.session_state["journal_entries"])):
                 tone = entry.get("tone", "Unspecified")
                 theme = entry.get("theme", "Unspecified")
                 mood = entry.get("mood", "Unspecified")
                 source = entry.get("source", "Chat")
                 reflection_type = entry.get("reflection_type", "Conversational Insight")
+                text = entry.get("text", "No reflection text available.")
+                date = entry.get("timestamp", pd.Timestamp.now())
 
+                # Emotionally styled block
+                styled_timeline_block(
+                    tone=tone,
+                    theme=theme,
+                    date=pd.to_datetime(date).strftime("%b %d, %Y"),
+                    text=text,
+                    key_suffix=f"chat_{i}"
+                )
+
+                # Original metadata preserved
                 tone_icon = tone_icon_map.get(tone, "❔")
                 theme_icon = theme_icon_map.get(theme, "❔")
                 mood_icon = mood_icon_map.get(mood, "❔")
 
                 st.caption(f"""
-                **🕒 {entry['timestamp']}**  
-                _Mood:_ {mood_icon} {mood} | 🧭 Tone: {tone_icon} {tone} | 🌱 Theme: {theme_icon} {theme}  
-                > {entry['text']}
+                🕒 {pd.to_datetime(date).strftime('%H:%M %p')}  
+                _Mood:_ {mood_icon} {mood} | 🧭 Tone: {tone_icon} {tone} | 🌱 Theme: {theme_icon} {theme}
                 """)
                 st.caption(f"📍 Source: {source} | 🧠 Type: {reflection_type}")
                 st.markdown("---")

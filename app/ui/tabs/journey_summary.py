@@ -3,39 +3,60 @@ import pandas as pd
 import plotly.express as px
 from collections import Counter
 
-from ui.incons import tone_icon_map, theme_icon_map
+from ui.incons import tone_icon_map, theme_icon_map, MILESTONE_MICROCOPY, TONE_COLORS
 from utils.milestone_utils import detect_milestones
+from ui.tabs.styles import styled_badge, styled_caption, styled_timeline_block
+
 
 def render_tab():
     st.markdown("## 📘 Journey Summary")
     st.markdown("_Your emotional landscape, milestones, and reflections in one place._")
 
     journal = st.session_state.get("journal_entries", [])
-
     if not journal:
         st.info("No reflections yet—your journey summary will appear here once you begin.")
         return
 
     df = pd.DataFrame(journal)
 
-    # 🔹 Tone Frequency
-    tone_counts = df["tone"].value_counts().reset_index()
-    tone_counts.columns = ["Tone", "Frequency"]
-    tone_counts["Tone"] = tone_counts["Tone"].apply(lambda t: f"{tone_icon_map.get(t, '')} {t}")
+    # 🛡️ Ensure 'date' column exists
+    if "date" not in df.columns:
+        st.warning("Your reflections don’t include timestamps yet. Tone evolution and timeline features will be limited.")
+        df["date"] = pd.Timestamp.now()
+
+    df["date"] = pd.to_datetime(df["date"])
+    df["date_str"] = df["date"].dt.strftime("%Y-%m-%d")
+
+    # 🔹 Animated Tone Evolution Chart
+    tone_time_counts = df.groupby(["date_str", "tone"]).size().reset_index(name="Frequency")
+    tone_time_counts["Tone"] = tone_time_counts["tone"].apply(lambda t: f"{tone_icon_map.get(t, '')} {t}")
+
+    tone_color_map = {
+        f"{tone_icon_map.get(t)} {t}": TONE_COLORS.get(t, "#999999")
+        for t in df["tone"].unique()
+    }
+
     tone_fig = px.bar(
-        tone_counts,
+        tone_time_counts,
         x="Tone",
         y="Frequency",
         color="Tone",
-        title="Tone Frequency",
-        color_discrete_sequence=px.colors.qualitative.Set2
+        animation_frame="date_str",
+        title="Tone Evolution Over Time",
+        color_discrete_map=tone_color_map
     )
     st.plotly_chart(tone_fig, use_container_width=True)
 
-    # 🔹 Theme Frequency
+    # 🔹 Dynamic Caption for Top Tone
+    top_tone_raw = df["tone"].value_counts().idxmax()
+    top_tone_icon = tone_icon_map.get(top_tone_raw, "")
+    st.caption(f"{top_tone_icon} You’ve reflected most often with a **{top_tone_raw}** tone—emotionally attuned and resonant.")
+
+    # 🔹 Theme Frequency Chart
     theme_counts = df["theme"].value_counts().reset_index()
     theme_counts.columns = ["Theme", "Frequency"]
     theme_counts["Theme"] = theme_counts["Theme"].apply(lambda t: f"{theme_icon_map.get(t, '')} {t}")
+
     theme_fig = px.bar(
         theme_counts,
         x="Theme",
@@ -57,44 +78,44 @@ def render_tab():
 
     # 🔹 Milestone Detection
     milestones = detect_milestones(journal)
-
     if milestones:
-        # Trigger summary
         tone_count = len(set(df["tone"]))
         total_reflections = len(journal)
         st.markdown("### 🏁 Milestones Reached")
         st.caption(f"Milestone triggered by {total_reflections} reflections across {tone_count} tones.")
 
-        # Theme depth summary
         theme_counts_raw = Counter([entry["theme"] for entry in journal])
         top_theme, top_count = theme_counts_raw.most_common(1)[0]
         theme_icon = theme_icon_map.get(top_theme, "🛡️")
         st.markdown(f"{theme_icon} You’ve explored **{top_theme}** in {top_count} reflections.")
 
-        # Milestone badges with icons
         milestone_icons = {
             "First Reflection": "📝",
             "Tone Shift": "🎭",
             "Theme Cluster": "🌿",
             "Export Ready": "📦"
         }
-        #active_theme = THEMES[st.session_state["active_theme"]]
-        
-
-        active_theme = st.session_state.get("theme_config", {})
-        badge_bg = active_theme.get("badge_bg", "#e6f7ff")
-        accent = active_theme.get("accent_color", "#2c6df2")
 
         cols = st.columns(len(milestones))
         for i, milestone in enumerate(milestones):
             icon = milestone_icons.get(milestone, "🏁")
             with cols[i]:
-                #st.badge(f"{icon} {milestone}", color="primary")
-                st.markdown(f"""
-                    <div style='text-align:center; padding:8px; background-color:{badge_bg}; border-radius:8px'>
-                    <span style='font-size:20px; color:{accent}'>🏁</span><br>
-                    <strong>{milestone}</strong>
-                    </div>
-                """, unsafe_allow_html=True)
+                styled_badge(label=milestone, icon=icon, key_suffix=f"milestone_{i}")
+                tone = st.session_state.get("tone", "Neutral")
+                caption = MILESTONE_MICROCOPY.get(milestone, {}).get(tone, "")
+                if caption:
+                    styled_caption(caption, key_suffix=f"{milestone}_caption")
     else:
         st.info("No milestones yet—your journey is just beginning.")
+
+    # 🔹 Reflection Timeline
+    st.markdown("### 🧭 Reflection Timeline")
+    df_sorted = df.sort_values(by="date")
+    for i, row in df_sorted.iterrows():
+        styled_timeline_block(
+            tone=row["tone"],
+            theme=row["theme"],
+            date=pd.to_datetime(row["date"]).strftime("%b %d, %Y"),
+            text=row.get("text", "No reflection text available."),
+            key_suffix=f"timeline_{i}"
+        )

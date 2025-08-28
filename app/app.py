@@ -9,6 +9,7 @@ from ui.tabs.journey_summary import render_tab as render_journey_summary
 from utils.dummy_data import generate_dummy_journal
 from utils.theme_config import THEMES
 from ui.tabs.styles import styled_tab_button
+from ui.incons import TONE_CONFIGS, THEME_TO_TONE
 
 # 🌿 Page setup
 st.set_page_config(page_title="Spiritual Reflection App", layout="centered")
@@ -17,6 +18,8 @@ st.set_page_config(page_title="Spiritual Reflection App", layout="centered")
 if "active_theme" not in st.session_state:
     st.session_state["active_theme"] = "Gentle"
     st.session_state["theme_config"] = THEMES["Gentle"]
+    st.session_state["tone"] = THEME_TO_TONE.get("Gentle", "Neutral")
+    st.session_state["tone_config"] = TONE_CONFIGS.get(st.session_state["tone"], TONE_CONFIGS["Neutral"])
 
 theme_choice = st.sidebar.selectbox(
     "🎨 Choose Theme",
@@ -27,6 +30,8 @@ theme_choice = st.sidebar.selectbox(
 if theme_choice != st.session_state["active_theme"]:
     st.session_state["active_theme"] = theme_choice
     st.session_state["theme_config"] = THEMES[theme_choice]
+    st.session_state["tone"] = THEME_TO_TONE.get(theme_choice, "Neutral")
+    st.session_state["tone_config"] = TONE_CONFIGS.get(st.session_state["tone"], TONE_CONFIGS["Neutral"])
     st.rerun()
 
 active_theme = st.session_state["theme_config"]

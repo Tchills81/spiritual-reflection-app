@@ -7,12 +7,17 @@ from utils.reflection_flows import get_prompt_sequence, run_guided_reflection_fl
 from ui.response_engine import generate_affirmation, save_reflection
 from ui.incons import tone_icon_map, theme_icon_map, mood_icon_map
 from utils.themes import get_themes_with_icons
+from ui.tabs.styles import  styled_timeline_block
+import pandas as pd
+
 
 def play_audio(text: str) -> BytesIO:
     audio_buffer = BytesIO()
     gTTS(text).write_to_fp(audio_buffer)
     audio_buffer.seek(0)
     return audio_buffer
+
+  # 👈 ensure this is imported
 
 def render_tab():
     st.markdown("## 🌅 Daily Reflection")
@@ -80,21 +85,32 @@ def render_tab():
         st.markdown("### 📖 Dialogue Journal")
         st.caption(f"🗂 {len(st.session_state['journal_entries'])} reflections saved")
 
-        for entry in reversed(st.session_state["journal_entries"]):
+        for i, entry in enumerate(reversed(st.session_state["journal_entries"])):
             tone = entry.get("tone", "Unspecified")
             theme = entry.get("theme", "Unspecified")
             mood = entry.get("mood", "Unspecified")
             source = entry.get("source", "Daily")
             reflection_type = entry.get("reflection_type", "Morning Reflection")
+            text = entry.get("text", "No reflection text available.")
+            date = entry.get("timestamp", pd.Timestamp.now())
 
+            # Emotionally styled block
+            styled_timeline_block(
+                tone=tone,
+                theme=theme,
+                date=pd.to_datetime(date).strftime("%b %d, %Y"),
+                text=text,
+                key_suffix=f"daily_{i}"
+            )
+
+            # Original metadata preserved
             tone_icon = tone_icon_map.get(tone, "❔")
             theme_icon = theme_icon_map.get(theme, "❔")
             mood_icon = mood_icon_map.get(mood, "❔")
 
             st.caption(f"""
-            **🕒 {entry['timestamp']}**  
-            _Mood:_ {mood_icon} {mood} | 🧭 Tone: {tone_icon} {tone} | 🌱 Theme: {theme_icon} {theme}  
-            > {entry['text']}
+            🕒 {pd.to_datetime(date).strftime('%H:%M %p')}  
+            _Mood:_ {mood_icon} {mood} | 🧭 Tone: {tone_icon} {tone} | 🌱 Theme: {theme_icon} {theme}
             """)
             st.caption(f"📍 Source: {source} | 🧠 Type: {reflection_type}")
             st.markdown("---")

@@ -2,7 +2,7 @@ from streamlit_extras.stylable_container import stylable_container
 import streamlit as st
 from gtts import gTTS
 from io import BytesIO
-from ui.incons import BUTTON_LABELS
+from ui.incons import BUTTON_LABELS, shadow_map, tone_icon_map, TONE_COLORS
 
 
 
@@ -62,27 +62,21 @@ def styled_audio_button(action_key, affirmation_text, container_key):
             st.audio(audio_buffer, format="audio/wav", autoplay=True)
             
         return clicked
+    
 
 
 
 
 def styled_tab_button(label, tab_key, current_tab, container_key):
-    """
-    A reusable, theme-aware tab button.
-
-    Args:
-        label (str): Emoji-rich label for the tab (e.g. "📓 Reflection Journal").
-        tab_key (str): Internal key for the tab (e.g. "Inner Compass").
-        current_tab (str): Currently active tab key.
-        container_key (str): Unique key for the stylable_container.
-
-    Returns:
-        bool: True if this tab was clicked.
-    """
     theme = st.session_state.get("theme_config", {})
+    tone_config = st.session_state.get("tone_config", {})
+    
     accent = theme.get("accent_color", "#2c6df2")
     text_color = theme.get("text_color", "#444")
     font = theme.get("font_family", "sans-serif")
+    hover_color = tone_config.get("hover_color", "#f0f4ff")
+    shadow = tone_config.get("shadow", "none")
+    icon = tone_config.get("icon", "🔘")
 
     is_active = (tab_key == current_tab)
 
@@ -97,10 +91,11 @@ def styled_tab_button(label, tab_key, current_tab, container_key):
             font-size: 16px;
             padding: 6px 18px;
             border-radius: 4px;
+            box-shadow: {shadow if is_active else 'none'};
             transition: all 0.2s ease-in-out;
         }}
         div.stButton > button:hover {{
-            background-color: #f0f4ff;
+            background-color: {hover_color};
             color: {accent};
             text-decoration: underline;
         }}
@@ -110,48 +105,9 @@ def styled_tab_button(label, tab_key, current_tab, container_key):
     """
 
     with stylable_container(key=f"{container_key}_container", css_styles=css):
-        return st.button(label, key=f"{container_key}_button")
+        return st.button(f"{icon} {label}", key=f"{container_key}_button")
 
 
-
-def _styled_selectbox(label, options, key, default_index=0):
-    """
-    A reusable, theme-aware styled selectbox.
-
-    Args:
-        label (str): Label to display above the dropdown.
-        options (list): List of options to choose from.
-        key (str): Unique key for the container and widget.
-        default_index (int): Index of the default selected option.
-
-    Returns:
-        str: The selected option.
-    """
-    theme = st.session_state.get("theme_config", {})
-    accent = theme.get("accent_color", "#000000")
-    font = theme.get("font_family", "sans-serif")
-    bg = theme.get("badge_bg", "#f0f0f0")
-    text_color = theme.get("text_color", "#333")
-
-    css = f"""
-        div[data-baseweb="select"] {{
-            background-color: {bg};
-            border-radius: 8px;
-            font-family: {font};
-        }}
-        label {{
-            font-weight: bold;
-            color: {accent};
-            font-family: {font};
-            font-size: 16px;
-        }}
-    """
-
-    with stylable_container(key=f"{key}_container", css_styles=css):
-        return st.selectbox(label, options, index=default_index, key=f"{key}_select")
-
-import streamlit as st
-from streamlit_extras.stylable_container import stylable_container
 
 def styled_selectbox(label, options, key, default_index=0):
     """
@@ -220,6 +176,9 @@ def styled_selectbox(label, options, key, default_index=0):
 
 
 def styled_text_input(label, key, placeholder="Type here..."):
+    tone_config = st.session_state.get("tone_config", {})
+    shadow = tone_config.get("shadow", "none")
+    hover_color = tone_config.get("hover_color", "#FF6666")
     """
     A reusable, theme-aware styled text input.
 
@@ -246,6 +205,8 @@ def styled_text_input(label, key, placeholder="Type here..."):
             font-size: 15px;
             font-family: {font};
             border: 1px solid {accent};
+            transition: background-color 0.3s ease;
+            box-shadow: {shadow};
         }}
         label {{
             font-weight: bold;
@@ -257,11 +218,12 @@ def styled_text_input(label, key, placeholder="Type here..."):
 
     with stylable_container(key=f"{key}_container", css_styles=css):
         return st.text_input(label, placeholder=placeholder, key=f"{key}_input")
-    
-import streamlit as st
-from streamlit_extras.stylable_container import stylable_container
+
 
 def styled_text_area(label, key, height=180, placeholder="Let your thoughts flow..."):
+    tone_config = st.session_state.get("tone_config", {})
+    shadow = tone_config.get("shadow", "none")
+    hover_color = tone_config.get("hover_color", "#FF6666")
     """
     A reusable, theme-aware styled text area for journaling or reflection.
 
@@ -289,6 +251,8 @@ def styled_text_area(label, key, height=180, placeholder="Let your thoughts flow
             font-size: 15px;
             font-family: {font};
             border: 1px solid {accent};
+            transition: background-color 0.3s ease;
+            box-shadow: {shadow};
         }}
         label {{
             font-weight: bold;
@@ -306,6 +270,9 @@ def styled_text_area(label, key, height=180, placeholder="Let your thoughts flow
   # 👈 reuse your existing component
 
 def styled_reflection_form(form_key_prefix="daily"):
+    tone_config = st.session_state.get("tone_config", {})
+    shadow = tone_config.get("shadow", "none")
+    hover_color = tone_config.get("hover_color", "#FF6666")
     """
     A reusable, theme-aware form for capturing user reflections.
 
@@ -330,19 +297,14 @@ import streamlit as st
 from streamlit_extras.stylable_container import stylable_container
 
 def styled_button(label, key):
-    """
-    A reusable, theme-aware styled button with emoji/icon support.
-
-    Args:
-        label (str): Button text (can include emoji).
-        key (str): Unique key for the container and button.
-
-    Returns:
-        bool: True if the button was clicked.
-    """
     theme = st.session_state.get("theme_config", {})
+    tone_config = st.session_state.get("tone_config", {})
+    
     accent = theme.get("accent_color", "#000000")
     font = theme.get("font_family", "sans-serif")
+    shadow = tone_config.get("shadow", "none")
+    hover_color = tone_config.get("hover_color", "#FF6666")
+    active_color = tone_config.get("active_color", "#CC3333")  # Optional
 
     css = f"""
         div.stButton > button {{
@@ -354,12 +316,13 @@ def styled_button(label, key):
             font-family: {font};
             border: none;
             transition: background-color 0.3s ease;
+            box-shadow: {shadow};
         }}
         div.stButton > button:hover {{
-            background-color: #FF6666;
+            background-color: {hover_color};
         }}
         div.stButton > button:active {{
-            background-color: #CC3333;
+            background-color: {active_color};
             transform: scale(0.98);
         }}
         div.stButton {{
@@ -374,6 +337,8 @@ def styled_button(label, key):
 
 
 def styled_icon_button(action_key, key_suffix):
+
+
     """
     A reusable, theme-aware button using emoji-rich labels from BUTTON_LABELS.
 
@@ -384,10 +349,19 @@ def styled_icon_button(action_key, key_suffix):
     Returns:
         bool: True if the button was clicked.
     """
+
+    
     label = BUTTON_LABELS.get(action_key, "🔘 Action")
     theme = st.session_state.get("theme_config", {})
     accent = theme.get("accent_color", "#000000")
     font = theme.get("font_family", "sans-serif")
+
+    tone_config = st.session_state.get("tone_config", {})
+    
+    font = theme.get("font_family", "sans-serif")
+    shadow = tone_config.get("shadow", "none")
+    hover_color = tone_config.get("hover_color", "#FF6666")
+    active_color = tone_config.get("active_color", "#CC3333")  # Optional
 
     css = f"""
         div.stButton > button {{
@@ -399,12 +373,13 @@ def styled_icon_button(action_key, key_suffix):
             font-family: {font};
             border: none;
             transition: background-color 0.3s ease;
+            box-shadow: {shadow};
         }}
         div.stButton > button:hover {{
-            background-color: #FF6666;
+            background-color: {hover_color};
         }}
         div.stButton > button:active {{
-            background-color: #CC3333;
+            background-color: {active_color};
             transform: scale(0.98);
         }}
         div.stButton {{
@@ -417,6 +392,9 @@ def styled_icon_button(action_key, key_suffix):
 
 
 def styled_caption(text, key_suffix="caption"):
+    tone_config = st.session_state.get("tone_config", {})
+    shadow = tone_config.get("shadow", "none")
+    hover_color = tone_config.get("hover_color", "#FF6666")
     """
     A reusable, theme-aware caption component.
 
@@ -446,6 +424,11 @@ def styled_caption(text, key_suffix="caption"):
 
 
 def styled_text_block(text, key_suffix="text_block"):
+
+    tone_config = st.session_state.get("tone_config", {})
+    shadow = tone_config.get("shadow", "none")
+    hover_color = tone_config.get("hover_color", "#FF6666")
+
     """
     A reusable, theme-aware text block component.
 
@@ -471,4 +454,84 @@ def styled_text_block(text, key_suffix="text_block"):
 
     with stylable_container(key=f"{key_suffix}_container", css_styles=css):
         st.markdown(text)
+
+
+def styled_badge(label, icon="🏁", key_suffix="badge"):
+    theme = st.session_state.get("theme_config", {})
+    tone_config = st.session_state.get("tone_config", {})
+
+    badge_bg = theme.get("badge_bg", "#e6f7ff")
+    accent = theme.get("accent_color", "#2c6df2")
+    font = theme.get("font_family", "sans-serif")
+    shadow = tone_config.get("shadow", "none")
+    hover = tone_config.get("hover_color", "#f0f0f0")
+
+    css = f"""
+        div.stMarkdown {{
+            background-color: {badge_bg};
+            color: {accent};
+            font-family: {font};
+            font-size: 15px;
+            padding: 10px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: {shadow};
+            transition: all 0.4s ease;
+            animation: fadeIn 0.8s ease-in-out;
+        }}
+        div.stMarkdown:hover {{
+            background-color: {hover};
+        }}
+        @keyframes fadeIn {{
+            from {{ opacity: 0; transform: translateY(10px); }}
+            to {{ opacity: 1; transform: translateY(0); }}
+        }}
+    """
+
+    with stylable_container(key=f"{key_suffix}_container", css_styles=css):
+        st.markdown(f"{icon}<br><strong>{label}</strong>", unsafe_allow_html=True)
+
+
+
+
+def styled_timeline_block(tone, theme, date, text, key_suffix="timeline"):
+    """
+    A reusable, tone-aware timeline block for reflections or dialogue entries.
+
+    Args:
+        tone (str): Emotional tone (e.g. "Gentle", "Empowering").
+        theme (str): Thematic label (e.g. "Resilience").
+        date (str): Date string (e.g. "Aug 28, 2025").
+        text (str): Reflection or dialogue content.
+        key_suffix (str): Unique key suffix for stylable_container.
+    """
+    tone_config = st.session_state.get("tone_config", {})
+    theme_config = st.session_state.get("theme_config", {})
+    icon = tone_icon_map.get(tone, "🌀")
+    color = TONE_COLORS.get(tone, "#999")
+    font = theme_config.get("font_family", "sans-serif")
+
+    css = f"""
+        div.stMarkdown {{
+            margin-bottom: 20px;
+            padding: 12px;
+            border-left: 4px solid {color};
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            font-family: {font};
+            animation: fadeIn 0.6s ease-in-out;
+        }}
+        @keyframes fadeIn {{
+            from {{ opacity: 0; transform: translateY(10px); }}
+            to {{ opacity: 1; transform: translateY(0); }}
+        }}
+    """
+
+    with stylable_container(key=f"{key_suffix}_container", css_styles=css):
+        st.markdown(f"""
+            <div style='font-size:18px; font-weight:bold;'>{icon} {tone} | {theme}</div>
+            <div style='font-size:14px; color:#555;'>{date}</div>
+            <div style='margin-top:8px; font-size:15px;'>{text}</div>
+        """, unsafe_allow_html=True)
+
 

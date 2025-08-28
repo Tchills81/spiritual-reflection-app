@@ -18,6 +18,7 @@ from io import BytesIO
 from ui.response_engine import generate_reflection, save_reflection
 # Optional: export and summary
 from ui.tabs.reflection_journal import render_export_summary
+from ui.tabs.styles import  styled_timeline_block
 
 def get_weekly_themes(journal):
     cutoff = datetime.now() - timedelta(days=7)
@@ -68,6 +69,9 @@ def render_weekly_chaining():
             st.rerun()
     else:
         st.info("No reflections found from the past week.")
+
+
+
 
 def render_tab():
     st.markdown("## 🌈 Generated Reflection")
@@ -131,37 +135,48 @@ def render_tab():
         ]
 
         if filtered:
-            for entry in reversed(filtered[:3]):
-                st.caption(f"""
-                🕒 {entry['timestamp']}  
-                🌱 Theme: {entry.get('theme', 'Unspecified')}  
-                > {entry['text']}
-                """)
-                st.markdown("---")
+            for i, entry in enumerate(reversed(filtered[:3])):
+                styled_timeline_block(
+                    tone=entry.get("tone", "Unspecified"),
+                    theme=entry.get("theme", "Unspecified"),
+                    date=pd.to_datetime(entry.get("timestamp", pd.Timestamp.now())).strftime("%b %d, %Y"),
+                    text=entry.get("text", "No reflection text available."),
+                    key_suffix=f"filtered_{i}"
+                )
         else:
             st.info(f"No reflections found with tone: {selected_tone}")
 
-    # Full journal viewer
+    # 📖 Dialogue Journal Viewer
     if st.session_state["journal_entries"]:
         st.markdown("### 📖 Dialogue Journal")
         st.caption("A living archive of your emotional and spiritual journey.")
 
-        for entry in reversed(st.session_state["journal_entries"]):
+        for i, entry in enumerate(reversed(st.session_state["journal_entries"])):
             tone = entry.get("tone", "Unspecified")
             theme = entry.get("theme", "Unspecified")
             length = entry.get("length", "Unspecified")
+            date = entry.get("timestamp", pd.Timestamp.now())
+            text = entry.get("text", "No reflection text available.")
 
+            # Emotionally styled block
+            styled_timeline_block(
+                tone=tone,
+                theme=theme,
+                date=pd.to_datetime(date).strftime("%b %d, %Y"),
+                text=text,
+                key_suffix=f"dialogue_{i}"
+            )
+
+            # Original metadata preserved
             tone_icon = tone_icon_map.get(tone, "❔")
             theme_icon = theme_icon_map.get(theme, "❔")
 
             st.caption(f"""
-            **🕒 {entry['timestamp']}**  
-            🧭 Tone: {tone_icon} {tone} | 🌱 Theme: {theme_icon} {theme} | 📏 Length: {length}  
-            > {entry['text']}
+            🕒 {pd.to_datetime(date).strftime('%H:%M %p')}  
+            🧭 Tone: {tone_icon} {tone} | 🌱 Theme: {theme_icon} {theme} | 📏 Length: {length}
             """)
             st.markdown("---")
 
-        
         render_export_summary("tab2")
 
 
